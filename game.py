@@ -1,6 +1,4 @@
 import pygame
-from enum import Enum
-from collections import namedtuple
 import random 
 import numpy as np
 import math
@@ -15,7 +13,7 @@ WHITE = (255,255,255)
 V0 = 85
 font = pygame.font.Font('arial.ttf', 25)
 
-class ArcherGame:
+class GunGameAI:
 
     def __init__(self, w=1000, h=640):
         self.w = w
@@ -30,51 +28,46 @@ class ArcherGame:
         self.player = pygame.transform.scale(player, (75, 150))
         target = pygame.image.load("target.png").convert_alpha()
         self.target = pygame.transform.scale(target, (75, 150))
+        self.reset()
+        
+
+    def reset(self):
         self.score = 0
-        self.game_over = 0
         self.angle = 45
+        self.frame_iteration = 0
         self.gravity = random.uniform(3.5, 10.5)
         self.xp = random.randint(30,250)
         self.xt = random.randint(610,850)
         self.y1 = random.randint(285,500)
         self.y2 = random.randint(285,500)
-
-    def play_step(self):
+         
+    
+    def play_step(self, action):
+        self.frame_iteration += 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    if(self.angle<75):
-                        self.angle+=3
-                elif event.key == pygame.K_DOWN:
-                    if(self.angle>-15):
-                        self.angle-=3
-                elif event.key == pygame.K_SPACE:
-                    i=0
+            
 
-                    while(True):
-                        result = self.animation(i)
-                        i +=1
-                        if result == 2: 
-                            time.sleep(1)
-                            self.score += 1
-                            break
-                        if result == 3: 
-                            self.game_over = 1
-                            break
-                    self.next_level()
-                elif event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit()
+        result = self._action(action)
 
-        
+        reward = 0
+        game_over = False
+        if result == 3:
+            game_over = True
+            reward = -10
+            return reward, game_over, self.score
+        if result == 2:
+            self.score += 1
+            self.next_level()
+            reward = 10 
+
         self._update_ui()
         self.clock.tick(SPEED)
         
 
-        return self.game_over, self.score
+        return reward, game_over, self.score
 
 
     def _update_ui(self):
@@ -92,7 +85,30 @@ class ArcherGame:
         self.trajectory()
         pygame.display.flip()
         
-    
+    def _action(self, action):
+        
+        # [up, down, shoot]
+        if np.array_equal(action,[1, 0, 0]):
+            if(self.angle<75):
+                self.angle+=3
+        elif np.array_equal(action, [0, 1, 0]):
+            if(self.angle>-15):
+                self.angle-=3
+        else:  #[0,0,1]
+            print(action)
+            print("Shoot")
+            i=0
+
+            while(True):
+                result = self.animation(i)
+                i +=1
+                if result == 2: 
+                    time.sleep(1)
+                    return 2 
+                if result == 3: 
+                    time.sleep(1)
+                    return 3
+
     def next_level(self):
         self.xp = random.randint(30,250)
         self.xt = random.randint(650,800)
@@ -121,12 +137,3 @@ class ArcherGame:
             pygame.draw.circle(self.display, WHITE,(x + self.xp + 80, self.y1 - 110 -y),4)
         pygame.display.flip()
         
-        
-if __name__ == '__main__':
-    game = ArcherGame()
-
-    while(True):
-        game_over, score = game.play_step()
-
-        if game_over == 1:
-            break
