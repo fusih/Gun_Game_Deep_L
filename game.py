@@ -54,12 +54,17 @@ class GunGameAI:
 
         reward = 0
         game_over = False
+        if self.frame_iteration > 30:
+            game_over = True
+            reward = -10
+            return reward, game_over, self.score
         if result == 3:
             game_over = True
             reward = -10
             return reward, game_over, self.score
         if result == 2:
             self.score += 1
+            self.frame_iteration = 0
             self.next_level()
             reward = 10 
 
@@ -95,18 +100,16 @@ class GunGameAI:
             if(self.angle>-15):
                 self.angle-=3
         else:  #[0,0,1]
-            print(action)
-            print("Shoot")
             i=0
 
             while(True):
                 result = self.animation(i)
                 i +=1
                 if result == 2: 
-                    time.sleep(1)
+                    #time.sleep(1)
                     return 2 
                 if result == 3: 
-                    time.sleep(1)
+                    #time.sleep(1)
                     return 3
 
     def next_level(self):
