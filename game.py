@@ -7,7 +7,7 @@ import time
 
 pygame.init()
 
-SPEED=40
+SPEED=2000
 BLACK = (0,0,0)
 WHITE = (255,255,255)
 V0 = 85
@@ -16,6 +16,7 @@ font = pygame.font.Font('arial.ttf', 25)
 class GunGameAI:
 
     def __init__(self, w=1000, h=640):
+        self.NGames = 0
         self.w = w
         self.h = h
         # init display
@@ -35,15 +36,17 @@ class GunGameAI:
         self.score = 0
         self.angle = 45
         self.frame_iteration = 0
-        self.gravity = random.uniform(3.5, 10.5)
+        self.gravity = 9
+        #self.gravity = random.uniform(3.5, 10.5)
         self.xp = random.randint(30,250)
         self.xt = random.randint(610,850)
         self.y1 = random.randint(285,500)
         self.y2 = random.randint(285,500)
-         
+        self._update_ui()
     
     def play_step(self, action):
         self.frame_iteration += 1
+        self.NGames +=1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -51,24 +54,30 @@ class GunGameAI:
             
 
         result = self._action(action)
+        self._update_ui()
 
         reward = 0
         game_over = False
-        if self.frame_iteration > 30:
+        if result == 3:
+            game_over = True
+            reward = -5
+            return reward, game_over, self.score
+        if self.frame_iteration >= 15:
             game_over = True
             reward = -10
             return reward, game_over, self.score
-        if result == 3:
+        if result == 4:
             game_over = True
-            reward = -10
+            reward = 20
             return reward, game_over, self.score
         if result == 2:
             self.score += 1
             self.frame_iteration = 0
             self.next_level()
-            reward = 10 
+            #game_over = True
+            reward = 60
 
-        self._update_ui()
+        
         self.clock.tick(SPEED)
         
 
@@ -94,11 +103,15 @@ class GunGameAI:
         
         # [up, down, shoot]
         if np.array_equal(action,[1, 0, 0]):
-            if(self.angle<75):
+            if(self.angle<78):
                 self.angle+=3
+            if(self.angle==78):
+                self.angle= -15
         elif np.array_equal(action, [0, 1, 0]):
-            if(self.angle>-15):
+            if(self.angle>-18):
                 self.angle-=3
+            if(self.angle==-18):
+                self.angle=75
         else:  #[0,0,1]
             i=0
 
@@ -111,13 +124,16 @@ class GunGameAI:
                 if result == 3: 
                     #time.sleep(1)
                     return 3
+                if result == 4: 
+                    return 4
 
     def next_level(self):
         self.xp = random.randint(30,250)
         self.xt = random.randint(650,800)
         self.y1 = random.randint(285,500)
         self.y2 = random.randint(285,500)
-        self.gravity = random.uniform(3.5, 10.5)
+        #self.gravity = random.uniform(3.5, 10.5)
+        self.gravity = 9
 
     def animation(self, t):
         x = ((V0*(t/5))) *np.cos((self.angle)*(math.pi/180))
@@ -129,6 +145,9 @@ class GunGameAI:
         if x + self.xp + 80 >= self.xt + 15 and x + self.xp + 80 <= self.xt + 35:
             if self.y1 - 110 -y <= self.y2 - 25 and self.y1 - 110 -y >= self.y2 - 135:
                 return 2
+            if self.y1 - 110 -y <= self.y2 + 60 and self.y1 - 110 -y >= self.y2 - 220:
+                print("quasi")
+                return 4
             else: 
                 return 3
         

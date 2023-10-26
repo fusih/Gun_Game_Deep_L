@@ -3,15 +3,18 @@ import torch.nn as nn
 import torch.optim as optim 
 import torch.nn.functional as F
 import os 
+import time 
 
 class Linear_QNet(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super().__init__()
         self.linear1 = nn.Linear(input_size, hidden_size)
-        self.linear2 = nn.Linear(hidden_size, output_size)
+        self.linearInter = nn.Linear(hidden_size, 1024)
+        self.linear2 = nn.Linear(1024, output_size)  
 
     def forward(self, x):
         x = F.relu(self.linear1(x))
+        x= self.linearInter(x)
         x = self.linear2(x)
         return x 
 
@@ -50,16 +53,20 @@ class QTrainer:
 
         # 1: predicted q values with current state 
         pred = self.model(state)
+        #print(done)
 
         target = pred.clone()
         for idx in range(len(done)):
+           # print("reward idx:")
+           # print(reward[idx])
             Q_new = reward[idx]
+            #print(Q_new)
             if not done[idx]:
                 Q_new = reward[idx] + self.gamma * torch.max(self.model(next_state[idx]))
 
             target[idx][torch.argmax(action[idx]).item()] = Q_new
-
-        # 2: Q_new = r + Y * max(next_predicted Q value) -> only if not done 
+    
+        # 2: Q_new) = r + Y * max(next_predicted Q value) -> only if not done 
         # pred.clone()
         # preds[argmax(action)] = Q_new
         self.optimizer.zero_grad()

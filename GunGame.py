@@ -62,6 +62,12 @@ class ArcherGame:
                             self.score += 1
                             break
                         if result == 3: 
+                            time.sleep(1)
+                            self.game_over = 1
+                            break
+                        if result == 4: 
+                            print("c'eri quasi")
+                            time.sleep(1)
                             self.game_over = 1
                             break
                     self.next_level()
@@ -110,6 +116,8 @@ class ArcherGame:
         if x + self.xp + 80 >= self.xt + 15 and x + self.xp + 80 <= self.xt + 35:
             if self.y1 - 110 -y <= self.y2 - 25 and self.y1 - 110 -y >= self.y2 - 135:
                 return 2
+            if self.y1 - 110 -y <= self.y2 + 60 and  self.y1 - 110 -y >= self.y2 - 220:
+                return 4
             else: 
                 return 3
         
