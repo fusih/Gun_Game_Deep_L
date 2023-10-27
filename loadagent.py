@@ -19,6 +19,7 @@ class Agent:
         self.gamma = 0.999 # discount rate 
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
         self.model = Linear_QNet(5, 256, 3)
+        self.model.load_state_dict(torch.load('model/best-model-27-10-16-39.pth'))
         self.targetmodel = copy.deepcopy(self.model)
 
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma) 
@@ -62,17 +63,17 @@ class Agent:
 
     def get_action(self, state):
         # random moves: tradeoff exploration / exploitation 
-        self.epsilon = 200 - self.n_games
+        #self.epsilon = 200 - self.n_games
         final_move = [0,0,0]
-        if random.randint(0, 270) < self.epsilon:
-            move = random.randint(0, 2)
-            final_move[move] = 1
-        else: 
-            state0 = torch.tensor(state, dtype=torch.float)
-            #prediction = self.model(state0)
-            prediction = self.targetmodel(state0)
-            move = torch.argmax(prediction).item()
-            final_move[move] = 1    
+        #if random.randint(0, 270) < self.epsilon:
+        #    move = random.randint(0, 2)
+        #    final_move[move] = 1
+        #else: 
+        state0 = torch.tensor(state, dtype=torch.float)
+        #prediction = self.model(state0)
+        prediction = self.targetmodel(state0)
+        move = torch.argmax(prediction).item()
+        final_move[move] = 1    
         
         return final_move
 
@@ -119,7 +120,7 @@ def train():
             plot_mean_scores.append(mean_score)
             plot(plot_scores, plot_mean_scores)
 
-        if (agent.n_games%6 == 0):
+        if (agent.n_games%3 == 0):
             #train long memory, plot result 
            
             #agent.train_long_memory()

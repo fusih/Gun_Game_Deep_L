@@ -68,7 +68,7 @@ class GunGameAI:
             return reward, game_over, self.score
         if result == 4:
             game_over = True
-            reward = 20
+            reward = -4
             return reward, game_over, self.score
         if result == 2:
             self.score += 1
@@ -145,7 +145,7 @@ class GunGameAI:
         if x + self.xp + 80 >= self.xt + 15 and x + self.xp + 80 <= self.xt + 35:
             if self.y1 - 110 -y <= self.y2 - 25 and self.y1 - 110 -y >= self.y2 - 135:
                 return 2
-            if self.y1 - 110 -y <= self.y2 + 60 and self.y1 - 110 -y >= self.y2 - 220:
+            if self.y1 - 110 -y <= self.y2 + 0 and self.y1 - 110 - y >= self.y2 - 160:
                 print("quasi")
                 return 4
             else: 
